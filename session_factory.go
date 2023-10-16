@@ -83,7 +83,10 @@ func (f sessionFactory) createSession(
 func (f sessionFactory) newSession(
 	sessionID SessionID, storeFactory MessageStoreFactory, settings *SessionSettings, logFactory LogFactory,
 	application Application) (s *session, err error) {
-	s = &session{sessionID: sessionID}
+	s = &session{
+		sessionID: sessionID,
+		bytesPool: NewBytesPool(1000, 256),
+	}
 
 	var validatorSettings = defaultValidatorSettings
 	if settings.HasSetting(config.ValidateFieldsOutOfOrder) {
