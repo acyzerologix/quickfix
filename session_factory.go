@@ -85,7 +85,7 @@ func (f sessionFactory) newSession(
 	application Application) (s *session, err error) {
 	s = &session{
 		sessionID: sessionID,
-		bytesPool: NewBytesPool(1000, 256),
+		bytesPool: NewBytesPool(256),
 	}
 
 	var validatorSettings = defaultValidatorSettings
