@@ -10,7 +10,7 @@ func NewBytesPool(bytesLength int) *BytesPool {
 	bp := &BytesPool{
 		pool: sync.Pool{
 			New: func() interface{} {
-				return make([]byte, bytesLength)
+				return make([]byte, 0, bytesLength)
 			},
 		},
 	}
@@ -22,6 +22,7 @@ func (p *BytesPool) Get() []byte {
 }
 
 func (p *BytesPool) Put(slice []byte) {
+	slice = slice[:0]
 	p.pool.Put(slice)
 	return
 }
