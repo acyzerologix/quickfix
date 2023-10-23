@@ -60,6 +60,8 @@ type session struct {
 	appDataDictionary       *datadictionary.DataDictionary
 
 	timestampPrecision TimestampPrecision
+
+	bytesPool *BytesPool
 }
 
 func (s *session) logError(err error) {
@@ -332,7 +334,8 @@ func (s *session) prepMessageForSend(msg *Message, inReplyTo *Message) (msgBytes
 		}
 	}
 
-	msgBytes = msg.build()
+	b := bytes.NewBuffer(s.bytesPool.Get())
+	msgBytes = msg.buildReuseBuf(b)
 	err = s.persist(seqNum, msgBytes)
 
 	return
@@ -349,6 +352,8 @@ func (s *session) persist(seqNum int, msgBytes []byte) error {
 func (s *session) sendQueued() {
 	for _, msgBytes := range s.toSend {
 		s.sendBytes(msgBytes)
+		// return to bytes pool
+		s.bytesPool.Put(msgBytes)
 	}
 
 	s.dropQueued()

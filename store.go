@@ -16,6 +16,7 @@
 package quickfix
 
 import (
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -50,6 +51,7 @@ type MessageStoreFactory interface {
 }
 
 type memoryStore struct {
+	mu                               sync.RWMutex
 	senderMsgSeqNum, targetMsgSeqNum int
 	creationTime                     time.Time
 	messageMap                       map[int][]byte
@@ -105,6 +107,8 @@ func (store *memoryStore) Close() error {
 }
 
 func (store *memoryStore) SaveMessage(seqNum int, msg []byte) error {
+	store.mu.Lock()
+	defer store.mu.Unlock()
 	if store.messageMap == nil {
 		store.messageMap = make(map[int][]byte)
 	}
@@ -124,9 +128,11 @@ func (store *memoryStore) SaveMessageAndIncrNextSenderMsgSeqNum(seqNum int, msg 
 func (store *memoryStore) GetMessages(beginSeqNum, endSeqNum int) ([][]byte, error) {
 	var msgs [][]byte
 	for seqNum := beginSeqNum; seqNum <= endSeqNum; seqNum++ {
+		store.mu.RLock()
 		if m, ok := store.messageMap[seqNum]; ok {
 			msgs = append(msgs, m)
 		}
+		store.mu.RUnlock()
 	}
 	return msgs, nil
 }

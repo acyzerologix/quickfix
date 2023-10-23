@@ -417,6 +417,16 @@ func (m *Message) build() []byte {
 	return b.Bytes()
 }
 
+// Build constructs a []byte from a Message instance
+func (m *Message) buildReuseBuf(b *bytes.Buffer) []byte {
+	m.cook()
+
+	m.Header.write(b)
+	m.Body.write(b)
+	m.Trailer.write(b)
+	return b.Bytes()
+}
+
 func (m *Message) cook() {
 	bodyLength := m.Header.length() + m.Body.length() + m.Trailer.length()
 	m.Header.SetInt(tagBodyLength, bodyLength)
